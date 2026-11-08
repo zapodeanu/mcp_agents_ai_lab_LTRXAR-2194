@@ -1980,6 +1980,12 @@ selection easier to observe and prevents unrelated servers from being chosen.
 A new conversation also keeps results from an earlier exercise from affecting
 the next prompt.
 
+> **Important:** The MCP servers are available in LibreChat, but none are
+> selected by default for a new conversation. Before sending a tool-based
+> prompt, open the MCP selector and explicitly select the server or servers
+> required by that prompt. A healthy or connected server is not automatically
+> available to the model until it is selected for the conversation.
+
 LibreChat sends every selected server's tool definitions to the model before
 the model chooses a tool. The five-server catalog currently requires more than
 either LiteLLM model's configured 32,768-token context window. Acceptance
