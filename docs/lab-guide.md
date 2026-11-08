@@ -2453,9 +2453,10 @@ although their tool-selection explanation or formatting differed.
 **What:** Uses the root Makefile to confirm that nginx, the LibreChat backend,
 and both local MCP servers remain healthy after the tool exercises.
 
-**Why:** Leaving the stack running allows students and instructors to revisit
-LibreChat, review conversation history, and repeat approved read-only
-exercises after completing the guided steps.
+**Why:** LibreChat and the MCP integrations will be used by later lab
+exercises. Leaving the stack running also allows students and instructors to
+review conversation history and repeat approved read-only exercises after
+completing this guide.
 
 ```bash
 cd "$LAB_ROOT"
@@ -2473,9 +2474,9 @@ LibreChat health (HTTPS):
 OK: https://localhost:3080/
 ```
 
-Do not run `make down` at the end of the student lab. Use it only when an
-instructor asks you to stop the local stack or when troubleshooting requires a
-clean restart.
+Do not run `make down` at the end of this guide. Leave the stack running for
+the later lab exercises. Use `make down` only when an instructor asks you to
+stop the local stack or when troubleshooting requires a clean restart.
 
 ### Chapter 6 summary
 
@@ -2501,7 +2502,8 @@ python3 scripts/check_lab_progress.py --live
 ```
 
 Confirm all eight local checkpoints pass, then review the remote MCP and model
-status. Leave the stack running after this check.
+status. Leave the stack running after this check because later lab exercises
+depend on it.
 
 ## Chapter 7: Lab Summary and Walk-Away Items
 
