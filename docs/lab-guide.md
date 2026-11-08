@@ -134,13 +134,14 @@ The repository root Makefile provides the primary operational workflow:
 ```bash
 make up
 make status
-make down
 ```
 
 - `make up` starts the two default local MCP servers and LibreChat.
 - `make status` reports local listeners and health, remote MCP connectivity,
   and model configuration.
-- `make down` stops the local application stack.
+- `make down` stops the local application stack, but is reserved for
+  instructor-directed cleanup or troubleshooting. Students leave the stack
+  running at the end of this lab.
 
 After cloning the repository, students can check their build progress at any
 time without activating the virtual environment:
@@ -2445,65 +2446,36 @@ Both models returned the same bounded site hierarchy from Catalyst Center,
 although their tool-selection explanation or formatting differed.
 ```
 
-### 6.10 Stop and verify the infrastructure
+### 6.10 Leave the infrastructure running and verify it
 
 **Where:** Sandbox terminal A
 
-**What:** Uses the root Makefile to stop nginx, the LibreChat backend, and both
-local MCP servers, waits briefly for their processes to exit, then checks that
-ports `3080`, `3081`, `8000`, and `8002` have no remaining listeners. MongoDB
-remains running as a host-managed dependency.
+**What:** Uses the root Makefile to confirm that nginx, the LibreChat backend,
+and both local MCP servers remain healthy after the tool exercises.
 
-**Why:** Clean shutdown prevents stale processes from occupying ports or
-carrying state into a later run. Verifying the four application listeners
-confirms that the recorded process IDs and stop commands manage LibreChat and
-the default local MCP server pair.
+**Why:** Leaving the stack running allows students and instructors to revisit
+LibreChat, review conversation history, and repeat approved read-only
+exercises after completing the guided steps.
 
 ```bash
 cd "$LAB_ROOT"
-make down
+make status
 ```
 
 **Example verification output:**
 
 ```text
-Default MCP server stop signals sent.
+Catalyst health (HTTPS):
+{"status":"ok","service":"catalyst-center-mcp"}
+Meraki Magic health (HTTPS):
+{"status":"ok","service":"meraki-magic-mcp"}
+LibreChat health (HTTPS):
+OK: https://localhost:3080/
 ```
 
-Verify that no LibreChat or default local MCP listener remains:
-
-```bash
-for attempt in {1..10}; do
-  listening=false
-  for port in 3080 3081 8000 8002; do
-    if lsof -tiTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
-      listening=true
-    fi
-  done
-  if [[ "$listening" == false ]]; then
-    break
-  fi
-  sleep 1
-done
-
-for port in 3080 3081 8000 8002; do
-  if lsof -tiTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
-    echo "Port $port: STILL LISTENING"
-  else
-    echo "Port $port: stopped"
-  fi
-done
-printf '\n'
-```
-
-**Example verification output:**
-
-```text
-Port 3080: stopped
-Port 3081: stopped
-Port 8000: stopped
-Port 8002: stopped
-```
+Do not run `make down` at the end of the student lab. Use it only when an
+instructor asks you to stop the local stack or when troubleshooting requires a
+clean restart.
 
 ### Chapter 6 summary
 
@@ -2516,8 +2488,7 @@ In this chapter, you:
   causation;
 - created a non-sensitive draw.io architecture diagram;
 - compared two models using the same MCP request; and
-- stopped LibreChat and both local MCP servers and verified that their
-  listeners closed.
+- left LibreChat and both local MCP servers running and verified their health.
 
 The hands-on exercises are complete. Chapter 7 summarizes the system,
 operational workflow, and reusable knowledge from the lab.
@@ -2526,13 +2497,11 @@ operational workflow, and reusable knowledge from the lab.
 
 ```bash
 cd "$HOME/mcp-ai-agent-lab"
-python3 scripts/check_lab_progress.py
+python3 scripts/check_lab_progress.py --live
 ```
 
-Because this chapter intentionally stopped the stack, checkpoints 7 and 8
-should report `NOT READY`; that confirms runtime services are no longer
-available rather than indicating that the completed lab build was lost. The
-first six installation checkpoints should remain passed.
+Confirm all eight local checkpoints pass, then review the remote MCP and model
+status. Leave the stack running after this check.
 
 ## Chapter 7: Lab Summary and Walk-Away Items
 
@@ -2625,15 +2594,15 @@ source .venv/bin/activate
 
 make up
 make status
-make down
 ```
 
 - `make up` validates the prepared configuration and starts LibreChat and both
   default local MCP servers.
 - `make status` checks local listeners and health endpoints, remote MCP
   connectivity, and model configuration.
-- `make down` stops LibreChat and both default local MCP servers. MongoDB
-  remains running as a host-managed dependency.
+- `make down` is an optional shutdown command for instructor-directed cleanup
+  or troubleshooting. It stops LibreChat and both default local MCP servers;
+  MongoDB remains running as a host-managed dependency.
 
 These Make targets are the preferred interface. The component scripts remain
 the implementation used for one-time installation and lower-level
