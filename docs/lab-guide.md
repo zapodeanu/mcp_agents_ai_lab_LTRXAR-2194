@@ -309,6 +309,11 @@ cd "$HOME/mcp-ai-agent-lab"
 export LAB_ROOT="$PWD"
 ```
 
+**Important:** Do not change the clone destination or rename the local
+`mcp-ai-agent-lab` directory. The lab scripts, Make targets, and reconnect
+instructions depend on this exact directory name and may fail if it is
+changed.
+
 Verify the clone:
 
 ```bash
