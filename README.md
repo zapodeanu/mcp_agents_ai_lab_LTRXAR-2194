@@ -11,6 +11,13 @@ Bedrock and a cloud LiteLLM endpoint.
 > Lab use only: the referenced MCP server project is a proof of concept and is
 > not intended for production deployment.
 
+## Students: Start Here
+
+Before cloning the repository, open the
+[Student Start page](docs/student-start.md). It covers the instructor-provided
+access information, SSH connection, Ubuntu validation, protected
+configuration check, public clone, and first progress check.
+
 ## What You Will Learn
 
 - Prepare an Ubuntu host for Python-based MCP services.
@@ -180,6 +187,7 @@ before distributing the student VM.
 - `requirements.txt` — human-maintained Python dependency sources
 - `requirements.lock` — exact direct and transitive Python package versions
   tested for student installation
+- `docs/student-start.md` — pre-clone student access and bootstrap instructions
 - `docs/lab-guide.md` — student instructions and validation
 - `docs/proctor-guide.md` — fleet preparation, lock maintenance, preflight,
   and troubleshooting

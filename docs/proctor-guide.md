@@ -5,6 +5,11 @@ Developed by Gabi Zapodeanu, PTME + Cursor/GPT-5.6 Sol
 This guide contains instructor and proctor preparation that students do not
 perform. The student workflow remains in [lab-guide.md](lab-guide.md).
 
+Before class, distribute the public
+[Student Start page](https://github.com/zapodeanu/mcp_agents_ai_lab_LTRXAR-2194/blob/main/docs/student-start.md).
+Students use it to connect to the Sandbox, verify the protected configuration,
+and clone the repository before opening the complete lab guide.
+
 ## 1. Prepare the Sandbox configuration
 
 ### What this does
