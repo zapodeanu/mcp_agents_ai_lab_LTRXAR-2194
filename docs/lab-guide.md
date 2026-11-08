@@ -2395,6 +2395,24 @@ An editable draw.io architecture diagram was created with the requested
 components and connections.
 ```
 
+To open the editable diagram:
+
+1. In the LibreChat response, find and expand the tool-call row labeled
+   **Ran `create_diagram` in `drawio-mcp`**.
+2. In the tool result, locate the sentence:
+   **If this client doesn't show the diagram inline, open it in draw.io editor
+   (give the user this link):**
+3. Immediately below that sentence, copy the complete URL beginning with
+   `https://app.diagrams.net/?`. The URL is long and may wrap across many
+   visible lines, but it is one link.
+4. Open the copied URL in a new browser tab. The draw.io editor loads the
+   generated diagram, where its shapes, labels, and connectors remain
+   editable.
+
+Do not copy the XML shown under **Parameters**; that is the input passed to the
+tool, not the browser link. If LibreChat renders the diagram or link directly
+in the chat, that link can be opened instead.
+
 ### 6.9 Compare models using the same MCP request
 
 **Where:** Lab Computer, LibreChat browser
