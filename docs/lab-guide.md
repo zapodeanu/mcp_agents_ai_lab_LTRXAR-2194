@@ -497,6 +497,34 @@ external vector database is required. The OpenAPI catalog contains multiple
 HTTP methods, but the MCP execution tool enforces read-only access by rejecting
 every method except `GET`.
 
+API Explorer follows a four-stage workflow:
+
+1. **Discover:** `explore_catalyst_api_endpoints` embeds a natural-language
+   query and ranks similar OpenAPI operations. The request can be narrowed to
+   the `inventory`, `assurance`, `operations`, or `administration` category,
+   filtered to `GET`, and limited to between 1 and 50 results.
+2. **Inspect:** `get_catalyst_endpoint_info` returns the selected operation's
+   exact path, method, operation ID, description, tags, and OpenAPI parameter
+   definitions. Inspect this metadata before execution; semantic similarity
+   ranks likely matches but does not prove that the first match is correct.
+3. **Execute:** `execute_catalyst_api_endpoint` accepts the exact path,
+   `GET` method, a parameter object, and an optional cluster name. Values for
+   placeholders such as `{id}` are inserted into the path; remaining values
+   become query parameters. If no cluster is supplied, the first enabled
+   cluster is used. Use `cluster: all` only when a prompt explicitly requires
+   every enabled cluster.
+4. **Review:** `get_catalyst_explorer_analytics` reports successful and failed
+   dynamic calls, success rate, frequently used endpoints, and candidates that
+   may deserve promotion into purpose-built curated tools. Its `detailed`
+   option includes recent call history.
+
+The Explorer search intentionally separates operations already represented by
+curated YAML tools from newly explored operations. Prefer a curated tool when
+one exists because it has a purpose-specific schema, validation, and error
+handling. Use Explorer for API coverage that is not already available as a
+curated tool. Never invent a required identifier: retrieve it with a
+read-only tool first, or stop before execution and report what is missing.
+
 - **Sites and inventory**
   - `get_site_count` — count sites.
   - `get_sites` — list areas, buildings, and floors.
@@ -2066,6 +2094,13 @@ read-only access to the broader OpenAPI catalog. Reviewing endpoint metadata
 before execution demonstrates how the vector search, OpenAPI metadata, and
 GET-only execution control work together.
 
+The search result is a ranked recommendation, not permission to execute. Check
+that the operation matches the requested intent, the method is `GET`, the path
+is exact, and every required path or query parameter has a known value. If a
+required identifier is missing, use an appropriate curated read-only tool to
+retrieve it first. If the result identifies an equivalent curated tool, use
+that tool instead of dynamic execution.
+
 Keep only `catalyst-center-mcp` selected, then submit:
 
 ```text
@@ -2085,6 +2120,23 @@ explore_catalyst_api_endpoints
 
 If a required identifier is unavailable, a successful response explains what
 is missing instead of inventing a value.
+
+Verify the result shows:
+
+- up to three ranked matches with similarity scores and summaries;
+- the chosen endpoint's exact path, `GET` method, and parameter definitions;
+- either a successful bounded response from the selected enabled cluster or a
+  clear explanation that execution was skipped because a required value was
+  unavailable; and
+- no attempted `POST`, `PUT`, `PATCH`, or `DELETE` request.
+
+To inspect how dynamic Explorer calls are tracked, submit:
+
+```text
+Call get_catalyst_explorer_analytics with detailed=false. Summarize the total
+successful and failed calls, success rate, and any frequently used endpoints.
+Do not make another platform API call.
+```
 
 ### 6.4 Ask Meraki organization, network, and device questions
 
