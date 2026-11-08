@@ -2,7 +2,7 @@
 
 Developed by Gabi Zapodeanu, PTME + Cursor/GPT-5.6 Sol
 
-If the repository has not been cloned yet, begin with the public
+A printable version of the pre-clone access instructions is available on the
 [Student Start page](student-start.md).
 
 ## How to use this guide
@@ -27,6 +27,44 @@ Complete the chapters in order:
 
 Each task explains what it does, why it is needed, and what successful output
 looks like. Stop when a verification fails.
+
+## Before You Begin: VPN and Sandbox Access
+
+The instructor completes the following placeholders in a private handout or
+learning-management system. Never replace them with real credentials in the
+public Git repository.
+
+```text
+VPN access
+  Client/application: <vpn-client>
+  Endpoint:           <vpn-endpoint>
+  Username:           <vpn-username>
+  Password:           <provided-privately>
+
+Ubuntu Sandbox access
+  Hostname or IP:     <sandbox-host>
+  Username:           <sandbox-user>
+  Password:           <provided-privately>
+
+LibreChat access
+  Account procedure:  <signup-or-login-instructions>
+  Username/email:     <student-account>
+  Password:           <provided-privately>
+```
+
+Before opening the Sandbox:
+
+1. Open `<vpn-client>` on the Lab Computer.
+2. Connect to `<vpn-endpoint>`.
+3. Authenticate with the privately supplied VPN username and password.
+4. Confirm that the VPN reports **Connected**.
+
+If VPN authentication fails, stop and contact the instructor. Do not expose
+the Sandbox directly to the Internet. Also confirm that the instructor has
+already installed the protected `$HOME/lab.env` file on the Sandbox.
+
+Chapter 1 provides the SSH connection, Ubuntu verification, protected
+configuration check, and public `git clone` command.
 
 ## Lab Introduction
 
