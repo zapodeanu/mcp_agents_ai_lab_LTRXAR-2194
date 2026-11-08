@@ -5,6 +5,9 @@
 environment.env
 lab.env
 
+# Private per-student access handout
+/docs/student-start.md
+
 # Python
 .venv/
 __pycache__/

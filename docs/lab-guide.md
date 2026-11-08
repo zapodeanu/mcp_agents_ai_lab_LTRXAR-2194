@@ -2,9 +2,6 @@
 
 Developed by Gabi Zapodeanu, PTME + Cursor/GPT-5.6 Sol
 
-A printable version of the pre-clone access instructions is available on the
-[Student Access and Start page](student-start.md).
-
 ## How to use this guide
 
 This guide uses two location names:

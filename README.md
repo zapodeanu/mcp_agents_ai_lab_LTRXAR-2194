@@ -13,10 +13,11 @@ Bedrock and a cloud LiteLLM endpoint.
 
 ## Students: Start Here
 
-Before cloning the repository, open the
-[Student Start page](docs/student-start.md). It covers the instructor-provided
-access information, SSH connection, Ubuntu validation, protected
-configuration check, public clone, and first progress check.
+Obtain the private access handout from the instructor before class. It contains
+the assigned Sandbox address and the privately supplied VPN, Sandbox, and
+LibreChat credentials. Never add the completed handout to this repository.
+After connecting to the Sandbox, follow the
+[complete lab guide](docs/lab-guide.md).
 
 ## What You Will Learn
 
@@ -187,7 +188,6 @@ before distributing the student VM.
 - `requirements.txt` — human-maintained Python dependency sources
 - `requirements.lock` — exact direct and transitive Python package versions
   tested for student installation
-- `docs/student-start.md` — pre-clone student access and bootstrap instructions
 - `docs/lab-guide.md` — student instructions and validation
 - `docs/proctor-guide.md` — fleet preparation, lock maintenance, preflight,
   and troubleshooting

@@ -5,10 +5,12 @@ Developed by Gabi Zapodeanu, PTME + Cursor/GPT-5.6 Sol
 This guide contains instructor and proctor preparation that students do not
 perform. The student workflow remains in [lab-guide.md](lab-guide.md).
 
-Before class, distribute the public
-[Student Start page](https://github.com/zapodeanu/mcp_agents_ai_lab_LTRXAR-2194/blob/main/docs/student-start.md).
-Students use it to connect to the Sandbox, verify the protected configuration,
-and clone the repository before opening the complete lab guide.
+Before class, distribute a private access handout to each student through an
+approved private channel. It contains that student's assigned Sandbox address
+and VPN, Sandbox, and LibreChat credentials. Never commit completed access
+handouts to this repository. Students use the handout to connect to the
+Sandbox, verify the protected configuration, and clone the repository before
+opening the complete lab guide.
 
 Copy its VPN, Ubuntu Sandbox, and LibreChat access worksheet into a private
 student handout or learning-management system, then replace the placeholders
