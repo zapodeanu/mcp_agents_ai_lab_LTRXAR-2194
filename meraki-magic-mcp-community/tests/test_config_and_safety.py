@@ -1,0 +1,449 @@
+import asyncio
+import importlib.util
+import json
+import os
+import sys
+import types
+import unittest
+from contextlib import contextmanager
+from pathlib import Path
+from unittest.mock import patch
+
+import meraki_mcp_config as config
+import meraki_magic_remote as remote
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class FakeFastMCP:
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    def tool(self, *args, **kwargs):
+        def decorator(func):
+            return func
+
+        return decorator
+
+    def resource(self, *args, **kwargs):
+        def decorator(func):
+            return func
+
+        return decorator
+
+    def streamable_http_app(self):
+        return object()
+
+    def run(self, *args, **kwargs):
+        return None
+
+
+class FakeSection:
+    def __init__(self, section_name, calls):
+        self.section_name = section_name
+        self.calls = calls
+
+    def __dir__(self):
+        return [
+            "deleteNetwork",
+            "getNetwork",
+            "removeNetworkDevices",
+            "updateDeviceSwitchPort",
+        ]
+
+    def __getattr__(self, method_name):
+        def method(*args, **kwargs):
+            self.calls.append(
+                {
+                    "section": self.section_name,
+                    "method": method_name,
+                    "args": args,
+                    "kwargs": kwargs,
+                }
+            )
+            return {"section": self.section_name, "method": method_name, "kwargs": kwargs}
+
+        setattr(self, method_name, method)
+        return method
+
+
+class FakeDashboardAPI:
+    instances = []
+
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+        self.calls = []
+        for section in [
+            "organizations",
+            "networks",
+            "devices",
+            "wireless",
+            "switch",
+            "appliance",
+            "camera",
+            "cellularGateway",
+            "sensor",
+            "sm",
+            "insight",
+            "licensing",
+            "administered",
+        ]:
+            setattr(self, section, FakeSection(section, self.calls))
+        FakeDashboardAPI.instances.append(self)
+
+
+class FakeBaseModel:
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+    def model_dump(self, exclude_none=False):
+        if exclude_none:
+            return {key: value for key, value in self.__dict__.items() if value is not None}
+        return dict(self.__dict__)
+
+
+def fake_field(default=None, default_factory=None, **kwargs):
+    if default_factory is not None:
+        return default_factory()
+    return default
+
+
+@contextmanager
+def fake_runtime_modules():
+    fake_meraki = types.ModuleType("meraki")
+    fake_meraki.DashboardAPI = FakeDashboardAPI
+    fake_meraki.exceptions = types.SimpleNamespace(APIError=type("APIError", (Exception,), {}))
+
+    fake_mcp = types.ModuleType("mcp")
+    fake_mcp_server = types.ModuleType("mcp.server")
+    fake_fastmcp = types.ModuleType("mcp.server.fastmcp")
+    fake_fastmcp.FastMCP = FakeFastMCP
+
+    fake_pydantic = types.ModuleType("pydantic")
+    fake_pydantic.BaseModel = FakeBaseModel
+    fake_pydantic.Field = fake_field
+
+    module_overrides = {
+        "meraki": fake_meraki,
+        "mcp": fake_mcp,
+        "mcp.server": fake_mcp_server,
+        "mcp.server.fastmcp": fake_fastmcp,
+        "pydantic": fake_pydantic,
+    }
+    sentinel = object()
+    originals = {name: sys.modules.get(name, sentinel) for name in module_overrides}
+    FakeDashboardAPI.instances = []
+    sys.modules.update(module_overrides)
+    try:
+        yield FakeDashboardAPI
+    finally:
+        for name, original in originals.items():
+            if original is sentinel:
+                sys.modules.pop(name, None)
+            else:
+                sys.modules[name] = original
+
+
+def load_script_module(filename, module_name):
+    path = ROOT / filename
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+class ConfigTests(unittest.TestCase):
+    def test_caller_default_and_override(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(config.DEFAULT_MERAKI_CALLER, config.get_meraki_caller())
+
+        with patch.dict(os.environ, {"MERAKI_PYTHON_SDK_CALLER": "InventoryTool ExampleOrg"}, clear=True):
+            self.assertEqual("InventoryTool ExampleOrg", config.get_meraki_caller())
+
+    def test_read_only_defaults_to_true_and_supports_alias(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertTrue(config.get_read_only_mode())
+
+        with patch.dict(os.environ, {"READ_ONLY": "false"}, clear=True):
+            self.assertFalse(config.get_read_only_mode())
+
+        with patch.dict(
+            os.environ,
+            {"READ_ONLY": "true", "READ_ONLY_MODE": "false"},
+            clear=True,
+        ):
+            self.assertFalse(config.get_read_only_mode())
+
+    def test_base_url_default_and_override(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(config.DEFAULT_MERAKI_BASE_URL, config.get_meraki_base_url())
+
+        with patch.dict(os.environ, {"MERAKI_BASE_URL": "https://api.meraki.cn/api/v1"}, clear=True):
+            self.assertEqual("https://api.meraki.cn/api/v1", config.get_meraki_base_url())
+
+        with patch.dict(os.environ, {"MERAKI_BASE_URL": "  "}, clear=True):
+            self.assertEqual(config.DEFAULT_MERAKI_BASE_URL, config.get_meraki_base_url())
+
+    def test_operation_classification(self):
+        self.assertTrue(config.is_write_operation("createOrganizationNetwork"))
+        self.assertTrue(config.is_write_operation("cycleDeviceSwitchPorts"))
+        self.assertTrue(config.is_write_operation("generateDeviceCameraSnapshot"))
+        self.assertTrue(config.is_write_operation("blinkDeviceLeds"))
+        self.assertTrue(config.is_destructive_operation("deleteNetwork"))
+        self.assertTrue(config.is_destructive_operation("removeNetworkDevices"))
+        self.assertTrue(config.is_write_operation("releaseFromOrganizationInventory"))
+        self.assertTrue(config.is_destructive_operation("releaseFromOrganizationInventory"))
+        self.assertFalse(config.is_destructive_operation("updateNetwork"))
+
+
+class RemoteTransportSecurityTests(unittest.TestCase):
+    def test_mcp_api_key_is_required_and_compared(self):
+        self.assertEqual(
+            (401, "missing api key"),
+            remote.api_key_error("/mcp", "", "shared-key"),
+        )
+        self.assertEqual(
+            (403, "invalid api key"),
+            remote.api_key_error("/mcp", "wrong-key", "shared-key"),
+        )
+        self.assertIsNone(
+            remote.api_key_error("/mcp", "shared-key", "shared-key")
+        )
+
+    def test_health_does_not_require_api_key(self):
+        self.assertIsNone(remote.api_key_error("/health", "", "shared-key"))
+
+    def test_remote_app_rejects_missing_configured_key(self):
+        with self.assertRaisesRegex(RuntimeError, "MCP_API_KEY must be set"):
+            remote.build_http_app(object(), "")
+
+
+class DynamicServerSafetyTests(unittest.TestCase):
+    def test_inventory_release_requires_write_mode_and_confirmation(self):
+        for read_only, confirmed, expected_error in [
+            ("true", False, "Write operation blocked - READ_ONLY_MODE is enabled"),
+            ("true", True, "Write operation blocked - READ_ONLY_MODE is enabled"),
+            ("false", False, "Destructive operation requires explicit confirmation"),
+            ("false", True, None),
+        ]:
+            with self.subTest(read_only=read_only, confirmed=confirmed), patch.dict(
+                os.environ,
+                {"MERAKI_API_KEY": "dummy", "READ_ONLY_MODE": read_only,
+                 "ENABLE_FILE_CACHING": "false"},
+                clear=True,
+            ), fake_runtime_modules():
+                module = load_script_module("meraki-mcp-dynamic.py", "test_dynamic_release")
+                params = {"organizationId": "123", "serials": ["Q234-ABCD-5678"],
+                          config.CONFIRM_DESTRUCTIVE_ACTION_PARAM: confirmed}
+                response = json.loads(module._call_meraki_method_internal(
+                    "organizations", "releaseFromOrganizationInventory", params))
+                if expected_error:
+                    self.assertEqual(expected_error, response["error"])
+                    self.assertEqual([], module.dashboard.calls)
+                else:
+                    self.assertEqual("releaseFromOrganizationInventory", response["method"])
+                    self.assertEqual(1, len(module.dashboard.calls))
+                    self.assertEqual(
+                        {"organizationId": "123", "serials": ["Q234-ABCD-5678"]},
+                        module.dashboard.calls[0]["kwargs"],
+                    )
+                self.assertEqual(confirmed, params[config.CONFIRM_DESTRUCTIVE_ACTION_PARAM])
+
+    def test_dynamic_dashboard_receives_configured_base_url(self):
+        with patch.dict(
+            os.environ,
+            {
+                "MERAKI_API_KEY": "dummy",
+                "MERAKI_BASE_URL": "https://api.meraki.cn/api/v1",
+            },
+            clear=True,
+        ), fake_runtime_modules() as dashboard_cls:
+            load_script_module("meraki-mcp-dynamic.py", "test_dynamic_base_url")
+
+        self.assertEqual("https://api.meraki.cn/api/v1", dashboard_cls.instances[0].kwargs["base_url"])
+        self.assertEqual(config.DEFAULT_MERAKI_CALLER, dashboard_cls.instances[0].kwargs["caller"])
+
+    def test_dynamic_dashboard_receives_caller_override(self):
+        with patch.dict(
+            os.environ,
+            {"MERAKI_API_KEY": "dummy", "MERAKI_PYTHON_SDK_CALLER": "InventoryTool ExampleOrg"},
+            clear=True,
+        ), fake_runtime_modules() as dashboard_cls:
+            load_script_module("meraki-mcp-dynamic.py", "test_dynamic_caller")
+            self.assertEqual("InventoryTool ExampleOrg", dashboard_cls.instances[0].kwargs["caller"])
+
+    def test_dynamic_blocks_writes_by_default(self):
+        with patch.dict(os.environ, {"MERAKI_API_KEY": "dummy"}, clear=True), fake_runtime_modules():
+            module = load_script_module("meraki-mcp-dynamic.py", "test_dynamic_read_only")
+            response = json.loads(
+                module._call_meraki_method_internal(
+                    "networks",
+                    "deleteNetwork",
+                    {"networkId": "N_123"},
+                )
+            )
+
+            self.assertEqual("Write operation blocked - READ_ONLY_MODE is enabled", response["error"])
+            self.assertEqual([], module.dashboard.calls)
+
+    def test_dynamic_requires_and_strips_destructive_confirmation(self):
+        with patch.dict(
+            os.environ,
+            {"MERAKI_API_KEY": "dummy", "READ_ONLY_MODE": "false"},
+            clear=True,
+        ), fake_runtime_modules():
+            module = load_script_module("meraki-mcp-dynamic.py", "test_dynamic_confirm")
+            missing_confirmation = json.loads(
+                module._call_meraki_method_internal(
+                    "networks",
+                    "deleteNetwork",
+                    {"networkId": "N_123"},
+                )
+            )
+            confirmed = json.loads(
+                module._call_meraki_method_internal(
+                    "networks",
+                    "deleteNetwork",
+                    {
+                        "networkId": "N_123",
+                        config.CONFIRM_DESTRUCTIVE_ACTION_PARAM: True,
+                    },
+                )
+            )
+
+            self.assertEqual(
+                "Destructive operation requires explicit confirmation",
+                missing_confirmation["error"],
+            )
+            self.assertEqual("deleteNetwork", confirmed["method"])
+            self.assertNotIn(
+                config.CONFIRM_DESTRUCTIVE_ACTION_PARAM,
+                module.dashboard.calls[-1]["kwargs"],
+            )
+
+
+class DynamicServerParameterTests(unittest.TestCase):
+    def test_missing_required_parameter_explains_parameters_object(self):
+        with patch.dict(os.environ, {"MERAKI_API_KEY": "dummy", "ENABLE_FILE_CACHING": "false"},
+                        clear=True), fake_runtime_modules():
+            module = load_script_module("meraki-mcp-dynamic.py", "test_dynamic_missing_param")
+            module.dashboard.devices = types.SimpleNamespace(
+                getDeviceLldpCdp=lambda serial: {"serial": serial}
+            )
+
+            missing = json.loads(module._call_meraki_method_internal(
+                "devices", "getDeviceLldpCdp", {}))
+            ok = json.loads(module._call_meraki_method_internal(
+                "devices", "getDeviceLldpCdp", {"serial": "Q2XX-AAAA-BBBB"}))
+
+        self.assertEqual("Invalid parameters", missing["error"])
+        self.assertEqual(["serial"], missing["missing_required_parameters"])
+        self.assertEqual([], missing["received_parameters"])
+        self.assertIn('parameters={"serial": "..."}', missing["hint"])
+        self.assertEqual({"serial": "Q2XX-AAAA-BBBB"}, ok)
+
+
+@contextmanager
+def fake_meraki_module():
+    fake_meraki = types.ModuleType("meraki")
+    fake_meraki.DashboardAPI = FakeDashboardAPI
+    fake_meraki.exceptions = types.SimpleNamespace(APIError=type("APIError", (Exception,), {}))
+    sentinel = object()
+    original = sys.modules.get("meraki", sentinel)
+    sys.modules["meraki"] = fake_meraki
+    try:
+        yield
+    finally:
+        if original is sentinel:
+            sys.modules.pop("meraki", None)
+        else:
+            sys.modules["meraki"] = original
+
+
+def fastmcp_available():
+    try:
+        import mcp.server.fastmcp  # noqa: F401
+    except ImportError:
+        return False
+    return True
+
+
+@unittest.skipUnless(fastmcp_available(), "mcp.server.fastmcp is not installed")
+class ToolSchemaTests(unittest.TestCase):
+    def test_null_default_arguments_accept_null(self):
+        for filename in ["meraki-mcp.py", "meraki-mcp-dynamic.py"]:
+            with self.subTest(filename=filename), patch.dict(
+                os.environ, {"MERAKI_API_KEY": "dummy", "ENABLE_FILE_CACHING": "false"}, clear=True
+            ), fake_meraki_module():
+                module = load_script_module(filename, f"test_schema_{filename.replace('-', '_')}")
+                for tool in module.mcp._tool_manager.list_tools():
+                    for name, prop in tool.parameters.get("properties", {}).items():
+                        if "default" in prop and prop["default"] is None:
+                            types_allowed = [prop.get("type")] + [
+                                option.get("type") for option in prop.get("anyOf", [])
+                            ]
+                            self.assertIn("null", types_allowed, f"{tool.name}.{name}")
+
+    def test_explicit_null_reaches_tool(self):
+        with patch.dict(
+            os.environ, {"MERAKI_API_KEY": "dummy", "ENABLE_FILE_CACHING": "false"}, clear=True
+        ), fake_meraki_module():
+            module = load_script_module("meraki-mcp-dynamic.py", "test_schema_null_call")
+            asyncio.run(module.mcp.call_tool("getOrganizationNetworks", {"organizationId": None}))
+
+        self.assertEqual("getOrganizationNetworks", module.dashboard.calls[-1]["method"])
+
+
+class ManualServerSafetyTests(unittest.TestCase):
+    def test_manual_dashboard_receives_configured_base_url(self):
+        with patch.dict(
+            os.environ,
+            {
+                "MERAKI_API_KEY": "dummy",
+                "MERAKI_BASE_URL": "https://api.meraki.cn/api/v1",
+            },
+            clear=True,
+        ), fake_runtime_modules() as dashboard_cls:
+            load_script_module("meraki-mcp.py", "test_manual_base_url")
+
+        self.assertEqual("https://api.meraki.cn/api/v1", dashboard_cls.instances[0].kwargs["base_url"])
+        self.assertEqual(config.DEFAULT_MERAKI_CALLER, dashboard_cls.instances[0].kwargs["caller"])
+
+    def test_manual_dashboard_receives_caller_override(self):
+        with patch.dict(
+            os.environ,
+            {"MERAKI_API_KEY": "dummy", "MERAKI_PYTHON_SDK_CALLER": "InventoryTool ExampleOrg"},
+            clear=True,
+        ), fake_runtime_modules() as dashboard_cls:
+            load_script_module("meraki-mcp.py", "test_manual_caller")
+            self.assertEqual("InventoryTool ExampleOrg", dashboard_cls.instances[0].kwargs["caller"])
+
+    def test_manual_destructive_tool_requires_write_mode_and_confirmation(self):
+        with patch.dict(os.environ, {"MERAKI_API_KEY": "dummy"}, clear=True), fake_runtime_modules():
+            read_only_module = load_script_module("meraki-mcp.py", "test_manual_read_only")
+            read_only_response = json.loads(read_only_module.delete_network("N_123"))
+
+        with patch.dict(
+            os.environ,
+            {"MERAKI_API_KEY": "dummy", "READ_ONLY_MODE": "false"},
+            clear=True,
+        ), fake_runtime_modules():
+            write_module = load_script_module("meraki-mcp.py", "test_manual_confirm")
+            missing_confirmation = json.loads(write_module.delete_network("N_123"))
+            confirmed = write_module.delete_network("N_123", confirm_destructive_action=True)
+
+            self.assertEqual(
+                "Destructive operation requires explicit confirmation",
+                missing_confirmation["error"],
+            )
+            self.assertEqual("Network N_123 deleted", confirmed)
+            self.assertEqual("deleteNetwork", write_module.dashboard.calls[-1]["method"])
+
+        self.assertEqual("Write operation blocked - READ_ONLY_MODE is enabled", read_only_response["error"])
+
+
+if __name__ == "__main__":
+    unittest.main()

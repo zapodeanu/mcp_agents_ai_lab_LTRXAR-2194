@@ -1,0 +1,90 @@
+diff --git a/client/src/components/Chat/Input/Composer/Bar.tsx b/client/src/components/Chat/Input/Composer/Bar.tsx
+index 7df732d6f..8f6f5a548 100644
+--- a/client/src/components/Chat/Input/Composer/Bar.tsx
++++ b/client/src/components/Chat/Input/Composer/Bar.tsx
+@@ -18,6 +18,7 @@ import Thinking from './Thinking';
+ import Palette from './Palette';
+ import { cn } from '~/utils';
+ import Chip from './Chip';
++import CompactMCPSelect from './CompactMCPSelect';
+ 
+ /** Stable identity so the memo below is not defeated when tools are hidden. */
+ const EMPTY_ENTRIES: PaletteEntry[] = [];
+@@ -271,7 +272,10 @@ function Bar({
+   /* Catalog skills are excluded: a picked skill is staged context for the next
+      turn, so it belongs in the tray above the textarea with files and quotes.
+      Built-in tool pins remain visible while off. */
+-  const barEntries = useMemo(() => projectBarEntries(entries), [entries]);
++  const barEntries = useMemo(
++    () => projectBarEntries(entries).filter((entry) => entry.itemType !== 'mcp'),
++    [entries],
++  );
+   /* Catalog order puts long skill and MCP names mid-row, stranding the rest of
+      that row; packing widest-first fills the rows instead. */
+   const { ordered: packedEntries, rootRef, widths } = useChipPacking(barEntries);
+@@ -419,6 +423,7 @@ function Bar({
+             anchorRef={anchorRef}
+           />
+         </span>
++        <CompactMCPSelect />
+         {/* A box rather than `contents` so it has something to move: the split
+             only puts chips here when they all fit on this line, so wrapping as
+             one unit and wrapping as siblings come to the same layout. */}
+diff --git a/client/src/components/Chat/Landing.tsx b/client/src/components/Chat/Landing.tsx
+index b799b6e87..d530aeb11 100644
+--- a/client/src/components/Chat/Landing.tsx
++++ b/client/src/components/Chat/Landing.tsx
+@@ -1,5 +1,5 @@
+ import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
+-import { HatGlasses } from 'lucide-react';
++import { BrainCircuit, HatGlasses } from 'lucide-react';
+ import { easings } from '@react-spring/web';
+ import { EModelEndpoint } from 'librechat-data-provider';
+ import { BirthdayIcon, TooltipAnchor, SplitText, useRemScale } from '@librechat/client';
+@@ -10,7 +10,6 @@ import { getIconEndpoint, getEntity, getModelSpec } from '~/utils';
+ import { useLocalize, useAuthContext, useGreeting } from '~/hooks';
+ import { useChatSettings } from '~/Providers/ChatSettingsContext';
+ import AgentContact from '~/components/Agents/AgentContact';
+-import ConvoIcon from '~/components/Endpoints/ConvoIcon';
+ 
+ const containerClassName =
+   'relative flex h-full items-center justify-center rounded-full bg-presentation text-text-primary';
+@@ -152,16 +151,9 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding:
+                   <HatGlasses className="text-text-primary h-2/3 w-2/3" aria-hidden="true" />
+                 </div>
+               ) : (
+-                <ConvoIcon
+-                  agentsMap={agentsMap}
+-                  assistantMap={assistantMap}
+-                  conversation={conversation}
+-                  endpointsConfig={endpointsConfig}
+-                  containerClassName={containerClassName}
+-                  context="landing"
+-                  className="text-text-primary h-2/3 w-2/3"
+-                  size={41}
+-                />
++                <div className={containerClassName}>
++                  <BrainCircuit className="text-text-primary h-2/3 w-2/3" aria-hidden="true" />
++                </div>
+               )}
+             </div>
+             {startupConfig?.showBirthdayIcon && (
+diff --git a/client/src/components/Chat/Menus/Endpoints/components/SpecIcon.tsx b/client/src/components/Chat/Menus/Endpoints/components/SpecIcon.tsx
+--- a/client/src/components/Chat/Menus/Endpoints/components/SpecIcon.tsx
++++ b/client/src/components/Chat/Menus/Endpoints/components/SpecIcon.tsx
+@@ -1,4 +1,5 @@
+ import React, { memo } from 'react';
++import { BrainCircuit } from 'lucide-react';
+ import { pxToRem, ProviderIcon } from '@librechat/client';
+ import type { TModelSpec, TEndpointsConfig } from 'librechat-data-provider';
+ import { EntityEndpointMark, isEntityEndpoint } from '~/components/Endpoints/EntityEndpointMark';
+@@ -19,5 +20,9 @@ const SpecIcon: React.FC<SpecIconProps> = ({ currentSpec, endpointsConfig, agent
+   const { provider, imageURL } = useProviderIcon({ endpoint, endpointsConfig, iconURL });
+   const { provider: fallbackProvider } = useProviderIcon({ endpoint, endpointsConfig });
+ 
++  if (!currentSpec.iconURL && !currentSpec.preset?.iconURL && !agentAvatarURL) {
++    return <BrainCircuit size={20} className="icon-md shrink-0 text-text-primary" />;
++  }
++
+   if (imageURL) {
+     return (

@@ -1,0 +1,153 @@
+version: 1.3.6
+
+interface:
+  customWelcome: "Network AI Hub"
+  privacyPolicy:
+    externalUrl: "https://www.cisco.com"
+
+registration:
+  socialLogins: []
+
+# Allow LibreChat to call local/remote MCP servers.
+mcpSettings:
+  allowedDomains:
+    - "localhost"
+    - "127.0.0.1"
+    - "cisco-live-2026-1-i-034332b0f8ef8bcce.splunk.show"
+    - "api.thousandeyes.com"
+    - "mcp.draw.io"
+
+mcpServers:
+  catalyst-center-mcp:
+    type: streamable-http
+    url: "https://localhost:8000/mcp"
+    headers:
+      Accept: "application/json, text/event-stream"
+      Content-Type: "application/json"
+    apiKey:
+      key: "${MCP_API_KEY}"
+      source: admin
+      authorization_type: custom
+      custom_header: "X-API-Key"
+    timeout: 90000
+    initTimeout: 20000
+    chatMenu: true
+  meraki-magic-mcp:
+    type: streamable-http
+    url: "https://localhost:8002/mcp"
+    headers:
+      Accept: "application/json, text/event-stream"
+      Content-Type: "application/json"
+    apiKey:
+      key: "${MCP_API_KEY}"
+      source: admin
+      authorization_type: custom
+      custom_header: "X-API-Key"
+    timeout: 120000
+    initTimeout: 20000
+    chatMenu: true
+  splunk-mcp:
+    type: stdio
+    command: npx
+    args:
+      - "-y"
+      - "mcp-remote@0.15.2"
+      - "${SPLUNK_MCP_EP}"
+      - "--header"
+      - "Authorization: Bearer ${SPLUNK_MCP_BEARER}"
+    timeout: 120000
+    initTimeout: 20000
+    chatMenu: true
+  thousandeyes-mcp:
+    type: streamable-http
+    url: "https://api.thousandeyes.com/mcp"
+    headers:
+      Accept: "application/json, text/event-stream"
+      Content-Type: "application/json"
+    apiKey:
+      key: "${THOUSANDEYES_API_KEY}"
+      source: admin
+      authorization_type: bearer
+    timeout: 120000
+    initTimeout: 20000
+    chatMenu: true
+  drawio-mcp:
+    type: streamable-http
+    url: "https://mcp.draw.io/mcp"
+    headers:
+      Accept: "application/json, text/event-stream"
+      Content-Type: "application/json"
+    timeout: 120000
+    initTimeout: 20000
+    chatMenu: true
+endpoints:
+  bedrock:
+    models:
+      - "global.anthropic.claude-sonnet-4-6"
+    inferenceProfiles:
+      "global.anthropic.claude-sonnet-4-6": "${BEDROCK_INFERENCE_PROFILE_CLAUDE_SONNET}"
+    availableRegions:
+      - "us-west-2"
+      - "us-east-1"
+    streamRate: 0
+    titleModel: "current_model"
+  custom:
+    - name: "LiteLLM"
+      apiKey: "${LITELLM_API_KEY}"
+      baseURL: "https://litellm.apps.buildermate.ai/v1"
+      models:
+        default:
+          - "sharon-gemma"
+          - "bedrock-claude"
+        fetch: false
+      tokenConfig:
+        sharon-gemma:
+          prompt: 0
+          completion: 0
+          context: 32768
+        bedrock-claude:
+          prompt: 0
+          completion: 0
+          context: 32768
+      titleConvo: true
+      titleModel: "current_model"
+      modelDisplayLabel: "LiteLLM"
+
+modelSpecs:
+  enforce: true
+  prioritize: true
+  list:
+    - name: "network-engineer"
+      label: "Claude Sonnet 4.6 (Bedrock)"
+      default: true
+      description: "Claude Sonnet 4.6 accessed via AWS Bedrock"
+      preset:
+        endpoint: "bedrock"
+        model: "global.anthropic.claude-sonnet-4-6"
+        region: "us-west-2"
+        promptPrefix: |
+          You are a senior network engineer assistant for Cisco enterprise operations.
+          Focus on practical troubleshooting, clear remediation steps, and safe change guidance.
+          Prefer concise output with command examples when useful.
+    - name: "sharon-gemma"
+      label: "SharonAI Gemma (LiteLLM)"
+      description: "Gemma model hosted behind the cloud LiteLLM endpoint."
+      preset:
+        endpoint: "LiteLLM"
+        model: "sharon-gemma"
+        maxContextTokens: 32768
+        promptPrefix: |
+          You are a senior network engineer assistant for Cisco enterprise operations.
+          Focus on practical troubleshooting, clear remediation steps, and safe change guidance.
+          Prefer concise output with command examples when useful.
+    - name: "claude-haiku-litellm"
+      label: "Claude Haiku (LiteLLM)"
+      description: "Claude Haiku accessed through the cloud LiteLLM endpoint."
+      preset:
+        endpoint: "LiteLLM"
+        model: "bedrock-claude"
+        maxContextTokens: 32768
+        promptPrefix: |
+          You are a senior network engineer assistant for Cisco enterprise operations.
+          Focus on practical troubleshooting, clear remediation steps, and safe change guidance.
+          Prefer concise output with command examples when useful.

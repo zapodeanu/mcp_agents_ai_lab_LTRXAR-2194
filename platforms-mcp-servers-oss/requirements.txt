@@ -1,0 +1,13 @@
+requests
+urllib3
+mcp==1.30.0
+python-dotenv
+PyYAML
+httpx
+sentence-transformers
+numpy
+scikit-learn
+pydantic
+uvicorn
+starlette
+fastapi

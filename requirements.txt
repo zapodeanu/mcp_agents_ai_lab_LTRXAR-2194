@@ -1,0 +1,4 @@
+# Unified teaching-lab environment (Python 3.13)
+boto3==1.43.123
+-r meraki-magic-mcp-community/requirements.txt
+-r platforms-mcp-servers-oss/requirements.txt

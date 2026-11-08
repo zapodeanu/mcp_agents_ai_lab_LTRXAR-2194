@@ -1,0 +1,16 @@
+
+# Catalyst Center target used by the teaching lab.
+# Credentials are loaded from $HOME/lab.env and must not be stored here.
+
+catalyst_centers:
+  - name: "Lab"
+    host: "128.107.255.252"
+    version: "3.2.3"
+    location: "SJC"
+    enabled: true
+
+  - name: "LakeO"
+    host: "10.93.141.45"
+    version: "3.2.3"
+    location: "PDX"
+    enabled: false

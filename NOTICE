@@ -1,0 +1,16 @@
+
+Copyright (c) 2026, Cisco Systems, Inc. and/or its affiliates
+
+This project includes software developed at Cisco Systems, Inc. and/or its affiliates.
+
+Bundled third-party and upstream components retain their own LICENSE, NOTICE,
+SECURITY, and attribution files.
+
+The bundled Meraki OpenAPI document is used for API discovery. Embedded PEM
+certificate example values were replaced with
+`CERTIFICATE_EXAMPLE_OMITTED`; certificate payloads are not required by the
+lab runtime or API Explorer.
+
+The bundled `sentence-transformers/all-MiniLM-L6-v2` model is distributed
+under the Apache License 2.0. Its model card and license are retained in
+`platforms-mcp-servers-oss/embeddings_assets/model/all-MiniLM-L6-v2/`.

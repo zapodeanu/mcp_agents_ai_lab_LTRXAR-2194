@@ -1,0 +1,38 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+
+# IDE/editor
+.idea/
+.vscode/
+
+# Secrets and local environment files
+environment.env
+.env
+.env.*
+*.pem
+*.key
+*.crt
+*.cer
+
+# Runtime/process artifacts
+*.pid
+*.pid.lock
+
+# Local caches
+
+# Logs and analytics artifacts
+*.log
+logs/
+
+# OpenAPI specs are tracked so both bundled platform MCP servers can rebuild
+# their local API Explorer vector indexes.

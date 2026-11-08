@@ -1,0 +1,13 @@
+[project]
+name = "meraki-magic-mcp"
+version = "0.1.0"
+description = "Dynamic Cisco Meraki MCP server for broad Dashboard API coverage"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.162.0",
+    "fastmcp>=3.4.4",
+    "mcp[cli]>=1.28.1",
+    "meraki>=4.5.0",
+    "uvicorn>=0.51.0",
+]

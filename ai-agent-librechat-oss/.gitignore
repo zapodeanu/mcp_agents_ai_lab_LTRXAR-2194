@@ -1,0 +1,12 @@
+.venv
+.env
+environment.env
+logs/
+images/
+uploads/
+librechat-src/
+nginx/local.conf
+.backend.pid
+.DS_Store
+.idea/
+*.egg-info/

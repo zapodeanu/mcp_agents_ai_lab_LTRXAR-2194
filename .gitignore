@@ -1,0 +1,30 @@
+# Local credentials and environment files
+.env
+.env.*
+!.env.example
+environment.env
+lab.env
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Runtime output
+logs/
+*.log
+*.pid
+ai-agent-librechat-oss/nginx/tmp/
+
+# Certificates and private keys
+certs/
+*.crt
+*.cer
+*.der
+*.key
+*.pem
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
