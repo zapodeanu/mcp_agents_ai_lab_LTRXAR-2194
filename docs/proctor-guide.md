@@ -10,6 +10,11 @@ Before class, distribute the public
 Students use it to connect to the Sandbox, verify the protected configuration,
 and clone the repository before opening the complete lab guide.
 
+Copy its VPN, Ubuntu Sandbox, and LibreChat access worksheet into a private
+student handout or learning-management system, then replace the placeholders
+there. Never commit the completed worksheet or real credentials to this public
+repository.
+
 ## 1. Prepare the Sandbox configuration
 
 ### What this does
