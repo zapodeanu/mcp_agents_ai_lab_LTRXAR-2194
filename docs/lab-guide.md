@@ -343,6 +343,10 @@ consistent Python version. A separate `uv` installation provides Python 3.13
 without replacing or modifying the Python version required by Ubuntu.
 
 ```bash
+if ! command -v pipx >/dev/null 2>&1; then
+  sudo apt update
+  sudo apt install -y pipx
+fi
 pipx ensurepath
 export PATH="$HOME/.local/bin:$PATH"
 command -v uv >/dev/null 2>&1 || pipx install uv
