@@ -17,13 +17,11 @@ VPN access
   Endpoint:           <vpn-endpoint>
   Username:           <vpn-username>
   Password:           <provided-privately>
-  MFA instructions:   <vpn-mfa-instructions>
 
 Ubuntu Sandbox access
   Hostname or IP:     <sandbox-host>
   Username:           <sandbox-user>
   Password:           <provided-privately>
-  SSH fingerprint:    <ssh-host-key-fingerprint>
 
 LibreChat access
   Account procedure:  <signup-or-login-instructions>
@@ -42,11 +40,10 @@ Do not request or post API keys, passwords, tokens, or the contents of
 1. Open `<vpn-client>` on the Lab Computer.
 2. Enter `<vpn-endpoint>`.
 3. Authenticate with the privately supplied VPN username and password.
-4. Complete `<vpn-mfa-instructions>` when prompted.
-5. Confirm that the VPN reports **Connected** before opening the Sandbox.
+4. Confirm that the VPN reports **Connected** before opening the Sandbox.
 
-If VPN authentication or MFA fails, stop and contact the instructor. Do not
-continue by exposing the Sandbox directly to the Internet.
+If VPN authentication fails, stop and contact the instructor. Do not continue
+by exposing the Sandbox directly to the Internet.
 
 ## 3. Open a terminal and connect to the Ubuntu Sandbox
 
@@ -56,9 +53,6 @@ Connect to the Ubuntu Sandbox:
 ```bash
 ssh <sandbox-user>@<sandbox-host>
 ```
-
-Accept the SSH host key only after its fingerprint matches the value supplied
-by the instructor.
 
 After login, confirm that the prompt belongs to the Sandbox:
 
