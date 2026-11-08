@@ -425,6 +425,17 @@ In this chapter, you:
 The Sandbox now has the source code and Python runtime required by both local
 MCP servers and the remaining lab chapters.
 
+**End-of-chapter progress check:**
+
+```bash
+cd "$HOME/mcp-ai-agent-lab"
+python3 scripts/check_lab_progress.py
+```
+
+Confirm the completed checkpoints pass. The checker may identify a later
+chapter as the next action; that is expected while the lab is still in
+progress.
+
 ## Chapter 2: Install and Configure the Catalyst Center MCP Server
 
 ### What this chapter does
@@ -780,6 +791,16 @@ In this chapter, you:
 
 The Catalyst Center MCP configuration is ready to start and test in Chapter 5.
 
+**End-of-chapter progress check:**
+
+```bash
+cd "$HOME/mcp-ai-agent-lab"
+python3 scripts/check_lab_progress.py
+```
+
+Confirm the earlier checkpoints still pass, then continue with the next action
+reported by the checker.
+
 ## Chapter 3: Install and Configure the Meraki Magic MCP Server
 
 ### What this chapter does
@@ -943,6 +964,16 @@ In this chapter, you:
 - verified that server-side read-only mode is enabled.
 
 The Meraki Magic MCP configuration is ready to start and test in Chapter 5.
+
+**End-of-chapter progress check:**
+
+```bash
+cd "$HOME/mcp-ai-agent-lab"
+python3 scripts/check_lab_progress.py
+```
+
+Confirm the earlier checkpoints still pass. Runtime checkpoints are not
+expected to pass until the complete stack is started in Chapter 5.
 
 ## Chapter 4: Install and Configure the LibreChat AI Agent
 
@@ -1518,6 +1549,17 @@ In this chapter, you:
 LibreChat and its supporting services are installed and ready for the
 end-to-end infrastructure tests in Chapter 5.
 
+**End-of-chapter progress check:**
+
+```bash
+cd "$HOME/mcp-ai-agent-lab"
+python3 scripts/check_lab_progress.py
+```
+
+The repository, host, Python, configuration, host-service, and LibreChat
+installation checkpoints should pass. The local runtime can remain not ready
+until Chapter 5.
+
 ## Chapter 5: Test the Infrastructure
 
 ### What this chapter does
@@ -1970,6 +2012,16 @@ In this chapter, you:
 The verified stack remains running and is ready for the AI-agent exercises in
 Chapter 6. Record any remote service that was explicitly accepted as
 unavailable for the current lab network.
+
+**End-of-chapter progress check:**
+
+```bash
+cd "$HOME/mcp-ai-agent-lab"
+python3 scripts/check_lab_progress.py --live
+```
+
+The checker waits for current LibreChat MCP initialization when needed. Confirm
+all eight local checkpoints pass, then review the remote MCP and model status.
 
 ## Chapter 6: Test the AI Agent
 
@@ -2451,6 +2503,18 @@ In this chapter, you:
 
 The hands-on exercises are complete. Chapter 7 summarizes the system,
 operational workflow, and reusable knowledge from the lab.
+
+**End-of-chapter progress check:**
+
+```bash
+cd "$HOME/mcp-ai-agent-lab"
+python3 scripts/check_lab_progress.py
+```
+
+Because this chapter intentionally stopped the stack, checkpoints 7 and 8
+should report `NOT READY`; that confirms runtime services are no longer
+available rather than indicating that the completed lab build was lost. The
+first six installation checkpoints should remain passed.
 
 ## Chapter 7: Lab Summary and Walk-Away Items
 
