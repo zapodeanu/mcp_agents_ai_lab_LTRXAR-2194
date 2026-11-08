@@ -1,32 +1,42 @@
-# MCP AI Agent Lab: Student Start
+# MCP AI Agent Lab: Student Access and Start
 
 Developed by Gabi Zapodeanu, PTME + Cursor/GPT-5.6 Sol
 
-Use this page before cloning the lab repository. Complete each step in order
-and stop if a verification fails.
+Use this page as the individual student access handout before cloning the lab
+repository. The instructor should create a private copy for each student and
+complete only that copy. Never commit a completed copy to the public
+repository.
 
-## 1. Collect the instructor-provided access information
+## Student assignment
 
-The instructor completes the following placeholders in a private handout or
-learning-management system. Never replace them with real credentials in the
-public Git repository.
+```text
+Student name:       <student-name>
+Lab session/date:   <lab-session>
+Assigned Sandbox:   10.10.20.59
+```
+
+## 1. Instructor-provided access information
+
+The instructor completes these credential placeholders in the student's
+private handout or learning-management system. Never replace them with real
+credentials in the public Git repository.
 
 ```text
 VPN access
   Client/application: <vpn-client>
-  Endpoint:           <vpn-endpoint>
+  URL:                <vpn-url>
   Username:           <vpn-username>
-  Password:           <provided-privately>
+  Password:           <vpn-password>
 
 Ubuntu Sandbox access
-  Hostname or IP:     <sandbox-host>
-  Username:           <sandbox-user>
-  Password:           <provided-privately>
+  IP address:         10.10.20.59
+  Username:           <sandbox-username>
+  Password:           <sandbox-password>
 
 LibreChat access
   Account procedure:  <signup-or-login-instructions>
-  Username/email:     <student-account>
-  Password:           <provided-privately>
+  Username/email:     <librechat-username-or-email>
+  Password:           <librechat-password>
 ```
 
 Also obtain confirmation that `$HOME/lab.env` is already installed on the
@@ -38,7 +48,7 @@ Do not request or post API keys, passwords, tokens, or the contents of
 ## 2. Connect the Lab Computer to the VPN
 
 1. Open `<vpn-client>` on the Lab Computer.
-2. Enter `<vpn-endpoint>`.
+2. Enter or open `<vpn-url>`.
 3. Authenticate with the privately supplied VPN username and password.
 4. Confirm that the VPN reports **Connected** before opening the Sandbox.
 
@@ -51,13 +61,13 @@ Use Terminal on macOS or Linux, or PowerShell/Windows Terminal on Windows.
 Connect to the Ubuntu Sandbox:
 
 ```bash
-ssh <sandbox-user>@<sandbox-host>
+ssh <sandbox-username>@10.10.20.59
 ```
 
 After login, confirm that the prompt belongs to the Sandbox:
 
 ```text
-<sandbox-user>@<sandbox-host>:~$
+<sandbox-username>@<sandbox-hostname>:~$
 ```
 
 All remaining commands on this page run on the Sandbox.
@@ -101,6 +111,11 @@ lab.env permissions: OK
 ## 6. Install Git and clone the public repository
 
 No GitHub account, token, or login is required:
+
+- Repository:
+  [https://github.com/zapodeanu/mcp_agents_ai_lab_LTRXAR-2194](https://github.com/zapodeanu/mcp_agents_ai_lab_LTRXAR-2194)
+- Complete lab guide:
+  [https://github.com/zapodeanu/mcp_agents_ai_lab_LTRXAR-2194/blob/main/docs/lab-guide.md](https://github.com/zapodeanu/mcp_agents_ai_lab_LTRXAR-2194/blob/main/docs/lab-guide.md)
 
 ```bash
 sudo apt update
